@@ -21,8 +21,10 @@ def waitcls(sleepTime, speedMode):
         time.sleep(sleepTime)
     os.system(clearCommand)
 
-def simpleNumberRequest(promptMessage, promptCursor, options, lowerLimit, upperLimit, speedMode):
+def simpleNumberRequest(title, promptMessage, promptCursor, options, lowerLimit, upperLimit, speedMode):
     while True:
+        if title:
+            print(title)
         for i in range(len(options)):
             option = options[i].label
             print(i+1, '.', ' ', option, sep='')
@@ -36,7 +38,9 @@ def simpleNumberRequest(promptMessage, promptCursor, options, lowerLimit, upperL
             waitcls(2, speedMode)
             continue
         if requestInt < lowerLimit or requestInt > upperLimit:
+            waitcls(0, False)
             print('Invalid option!')
+            waitcls(2, speedMode)
             continue
         if type(requestInt) == int:
             return requestInt-1
@@ -111,11 +115,8 @@ class Screen:
         return self
 
     def display_screen(self):
-        if self.title:
-            print(self.title)
-        
         try:
-            choice = simpleNumberRequest(self.prompt, self.promptCursor, self.options, 1, len(self.options), self.speedMode)
+            choice = simpleNumberRequest(self.title, self.prompt, self.promptCursor, self.options, 1, len(self.options), self.speedMode)
             if 0 <= choice < len(self.options):
                 option = self.options[choice]
                 option.execute()  # If using callback system
