@@ -40,7 +40,7 @@ def open_screen():
     else:
         print("Screen not found.")
 
-#c Callback
+# Callback
 def do_nothing():
     pass
 
