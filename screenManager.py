@@ -1,8 +1,45 @@
-from simpleNumberRequest import simpleNumberRequest
 from enum import Enum
 from typing import List, Optional, Callable
+import time
 import os
 
+def waitcls(sleepTime, speedMode):
+    version = os.name
+
+    clearCommand = ''
+
+    match version:
+        case 'nt':
+            clearCommand = 'cls'
+        case 'Posix':
+            clearCommand = 'clear'
+
+
+    if speedMode:
+        time.sleep(0)
+    else:
+        time.sleep(sleepTime)
+    os.system(clearCommand)
+
+def simpleNumberRequest(promptMessage, promptCursor, options, lowerLimit, upperLimit, speedMode):
+    while True:
+        for i in range(len(options)):
+            option = options[i].label
+            print(i+1, '.', ' ', option, sep='')
+        print(promptMessage)
+        request = input(promptCursor)
+        try:
+            requestInt = int(request)
+        except ValueError:
+            waitcls(0, False)
+            print('Non integer value entered!')
+            waitcls(2, speedMode)
+            continue
+        if requestInt < lowerLimit or requestInt > upperLimit:
+            print('Invalid option!')
+            continue
+        if type(requestInt) == int:
+            return requestInt-1
 
 class ScreenTypes(Enum):
         OPTIONS = "options"
@@ -85,7 +122,6 @@ class Screen:
         except (IndexError, ValueError) as e:
             print(f"Invalid choice: {e}")
     
-    
 
 class ScreenManager:
     def __init__(self, speedMode: bool = False):
@@ -95,72 +131,22 @@ class ScreenManager:
     def add_screen(self, identifier: str) -> 'Screen':
         if identifier in self.screens:
             raise ValueError(f"Screen '{identifier}' already exists")
-        self.screens[identifier] = Screen(identifier, self.speedMode)
+        self.screens[identifier] = Screen(identifier=identifier, speedMode=self.speedMode)
         return self.screens[identifier]
 
-    def get_screen_by_identifier(self, name):
-        return self.screens.get(name)
+    def get_screen_by_identifier(self, identifier):
+        return self.screens.get(identifier)
 
-    def remove_screen(self, name):
-        if name in self.screens:
-            del self.screens[name]
+    def remove_screen(self, identifier):
+        if identifier in self.screens:
+            del self.screens[identifier]
 
     def clear_screens(self):
         self.screens.clear()
 
-    def has_screen(self, name):
-        return name in self.screens
+    def has_screen(self, identifier):
+        return identifier in self.screens
     def list_screens(self):
         return list(self.screens.keys())
-    
-    
-manager = ScreenManager()
 
-def test1_action():
-    print('Test1')
-
-def test2_action():
-    print('Test2')
-
-def test3_action():
-    print('Test3')
-
-def create_new_screen():
-    os.system('cls')
-    new_screen = manager.add_screen('test:newScreen')
-    new_screen.set_title('New Screen').set_type(ScreenTypes.OPTIONS)
-    new_screen.add_option('Test Option', lambda: print("This is a test option"))
-    new_screen.set_prompt('What do you want to do?').set_prompt_cursor('> ')
-    new_screen.display_screen()
-
-def open_screen():
-    screen = manager.get_screen_by_identifier("test:newScreen")
-    if screen:
-        screen.display_screen()
-    else:
-        print("Screen not found.")
-
-def do_nothing():
-    pass
-
-# Create and set up the main screen
-screenTest: Screen = manager.add_screen("main:testScreen")
-
-screenTest.set_title("Testing Screen 2")
-screenTest.set_type(ScreenTypes.OPTIONS)
-
-screenTest.add_option("Test1", test1_action)
-screenTest.add_option("Test2", test2_action)
-screenTest.add_option("Test3", test3_action)
-screenTest.add_option("Create new screen", create_new_screen)
-screenTest.add_option("Open test:newScreen", open_screen)
-screenTest.add_option("Nothing", do_nothing)
-
-print(screenTest.list_options())
-print(screenTest.identifier)
-
-screenTest.set_prompt("What do you want to have?")
-screenTest.set_prompt_cursor("> ")
-
-while True:
-    manager.get_screen_by_identifier("main:testScreen").display_screen()
+__all__ = ['ScreenManager', 'Screen', 'Option', 'ScreenTypes']
