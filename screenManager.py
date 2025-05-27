@@ -20,7 +20,7 @@ class Option:
             self.callback()
 
 class Screen:
-    def __init__(self, identifier: str, title: str=None, screen_type: ScreenTypes=ScreenTypes.OPTIONS, options: list[Option]=None, prompt: str=None, prompt_cursor: str="> "):
+    def __init__(self, identifier: str, title: str=None, screen_type: ScreenTypes=ScreenTypes.OPTIONS, options: list[Option]=None, prompt: str=None, prompt_cursor: str="> ", speedMode: bool = False):
         if ":" not in identifier:
             raise ValueError("Identifier must be in the format 'namespace:identifier'.")
         namespace, identifier = identifier.split(":", 1)
@@ -32,6 +32,7 @@ class Screen:
         self.options = options if options is not None else []  # Create new list for each instance
         self.prompt = prompt
         self.promptCursor = prompt_cursor
+        self.speedMode = speedMode
 
     @property
     def identifier(self):
@@ -43,32 +44,32 @@ class Screen:
     def __str__(self):
         return f"Screen: {self.title or self.identifier}"
     
-    def set_title(self, title):
+    def set_title(self, title) -> 'Screen':
         self.title = title
         return self
-    def set_type(self, screen_type):
+    def set_type(self, screen_type) -> 'Screen':
         self.type = screen_type
         return self
-    def add_option(self, label: str, callback):
+    def add_option(self, label: str, callback) -> 'Screen':
         self.options.append(Option(label, callback))
         return self
     def list_options(self):
         return [option.label for option in self.options]
-    def get_option(self, index: int):
+    def get_option(self, index: int) -> Option:
         if 0 <= index < len(self.options):
             return self.options[index]
         else:
             raise IndexError("Option index out of range.")
-    def delete_option(self, index: int):
+    def delete_option(self, index: int) -> 'Screen':
         if 0 <= index < len(self.options):
             del self.options[index]
             return self
         else:
             raise IndexError("Option index out of range.")
-    def set_prompt(self, prompt):
+    def set_prompt(self, prompt) -> 'Screen':
         self.prompt = prompt
         return self
-    def set_prompt_cursor(self, prompt_cursor):
+    def set_prompt_cursor(self, prompt_cursor) -> 'Screen':
         self.promptCursor = prompt_cursor
         return self
 
@@ -77,7 +78,7 @@ class Screen:
             print(self.title)
         
         try:
-            choice = simpleNumberRequest(self.prompt, self.promptCursor, self.options, 1, len(self.options), False)
+            choice = simpleNumberRequest(self.prompt, self.promptCursor, self.options, 1, len(self.options), self.speedMode)
             if 0 <= choice < len(self.options):
                 option = self.options[choice]
                 option.execute()  # If using callback system
@@ -87,13 +88,14 @@ class Screen:
     
 
 class ScreenManager:
-    def __init__(self):
+    def __init__(self, speedMode: bool = False):
+        self.speedMode = speedMode
         self.screens = {}
 
     def add_screen(self, identifier: str) -> 'Screen':
         if identifier in self.screens:
             raise ValueError(f"Screen '{identifier}' already exists")
-        self.screens[identifier] = Screen(identifier)
+        self.screens[identifier] = Screen(identifier, self.speedMode)
         return self.screens[identifier]
 
     def get_screen_by_identifier(self, name):
@@ -130,7 +132,6 @@ def create_new_screen():
     new_screen.add_option('Test Option', lambda: print("This is a test option"))
     new_screen.set_prompt('What do you want to do?').set_prompt_cursor('> ')
     new_screen.display_screen()
-    input("Press enter to continue...")
 
 def open_screen():
     screen = manager.get_screen_by_identifier("test:newScreen")
