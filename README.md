@@ -53,7 +53,7 @@ screenTest: Screen = manager.add_screen("main:testScreen")
 # set title takes in a string that is printed just before options appear from simpleNumberRequest
 screenTest.set_title("Testing Screen 2")
 
-# Currently this does nothing and technically could be removed from the code but it will be expanded upon in kater development
+# Currently this does nothing and technically could be removed from the code but it will be expanded upon in later development
 screenTest.set_type(ScreenTypes.OPTIONS)
 
 # add option creates an option and takes in a string for the label and a function for callback
