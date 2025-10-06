@@ -122,6 +122,8 @@ class Screen:
         return self
 
     def add_option(self, label: str, callback) -> 'Screen':
+        if self.type == ScreenTypes.CONFIRMATION and len(self.options) >= 2:
+            raise ValueError("Confirmation screens can only have two options (yes option callback/no option callback).")
         self.options.append(Option(label, callback))
         return self
 
@@ -151,7 +153,7 @@ class Screen:
 
     def display_screen(self):
 
-        if not self.options:
+        if not self.options and self.type != ScreenTypes.CONFIRMATION:
             raise ValueError("No options available for selection.")
         elif self.type == ScreenTypes.MULTI_OPTIONS_NUM:
             try:
@@ -170,6 +172,22 @@ class Screen:
                     option.execute()  # If using callback system
             except (IndexError, ValueError) as e:
                 print(f"Invalid choice: {e}")
+        elif self.type == ScreenTypes.CONFIRMATION:
+            if self.title:
+                print(self.title)
+            print(self.prompt or "Are you sure? (yes/no)")
+            while True:
+                response = input(self.promptCursor).strip().lower()
+                if response in ['yes', 'y']:
+                    if self.options and len(self.options) > 0:
+                        self.options[0].execute()  # Execute the first option's callback
+                    break
+                elif response in ['no', 'n']:
+                    if self.options and len(self.options) > 1:
+                        self.options[1].execute()  # Execute the second option's callback
+                    break
+                else:
+                    print("Please respond with 'yes' or 'no'.")
         else:
             raise NotImplementedError(f"Screen type '{self.type}' is not implemented yet.")
 
