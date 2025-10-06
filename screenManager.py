@@ -45,17 +45,36 @@ def _simple_number_request(title, prompt_message, prompt_cursor, options, lower_
         if type(request_int) == int:
             return request_int - 1
 
+def _simple_text_request(title, prompt_message, prompt_cursor, options, speed_mode):
+    while True:
+        if title:
+            print(title)
+        for i in range(len(options)):
+            option = options[i].label
+            print(" - " + option)
+        print(prompt_message)
+        request = input(prompt_cursor)
+        for i in range(len(options)):
+            option = options[i].label.lower()
+            if request.lower() == option:
+                return i
+        #_waitcls(0, False)
+        print("Invalid option. Please try again.")
+        #_waitcls(2, speed_mode)
+
 
 class ScreenTypes(Enum):
-    OPTIONS = "options"
-    INPUT = "input"
+    MULTI_OPTIONS_NUM = "options_num"
+    MULTI_OPTIONS_TEXT = "options_text"
     CONFIRMATION = "confirmation"
     CUSTOM = "custom"
 
 
 class Option:
-    def __init__(self, label: str = "Fill the label boyo", callback: Optional[Callable] = None):
+    def __init__(self, label: str, callback: Optional[Callable] = None):
         self.label: str = label
+        if label is None or label.strip() == "":
+            raise ValueError("Option label cannot be empty.")
         self.callback: Optional[Callable] = callback
 
     def execute(self):
@@ -64,7 +83,7 @@ class Option:
 
 
 class Screen:
-    def __init__(self, identifier: str, title: str = None, screen_type: ScreenTypes = ScreenTypes.OPTIONS,
+    def __init__(self, identifier: str, title: str = None, screen_type: ScreenTypes = ScreenTypes.MULTI_OPTIONS_NUM,
                  options: list[Option] = None, prompt: str = None, prompt_cursor: str = "> ", speed_mode: bool = False):
         import re
         pattern = re.compile(r"^[a-zA-Z0-9]+:[a-zA-Z0-9]+$")
@@ -131,14 +150,28 @@ class Screen:
         return self
 
     def display_screen(self):
-        try:
-            choice = _simple_number_request(self.title, self.prompt, self.promptCursor, self.options, 1, len(self.options),
-                                            self.speedMode)
-            if 0 <= choice < len(self.options):
-                option = self.options[choice]
-                option.execute()  # If using callback system
-        except (IndexError, ValueError) as e:
-            print(f"Invalid choice: {e}")
+
+        if not self.options:
+            raise ValueError("No options available for selection.")
+        elif self.type == ScreenTypes.MULTI_OPTIONS_NUM:
+            try:
+                choice = _simple_number_request(self.title, self.prompt, self.promptCursor, self.options, 1, len(self.options),
+                                                self.speedMode)
+                if 0 <= choice < len(self.options):
+                    option = self.options[choice]
+                    option.execute()  # If using callback system
+            except (IndexError, ValueError) as e:
+                print(f"Invalid choice: {e}")
+        elif self.type == ScreenTypes.MULTI_OPTIONS_TEXT:
+            try:
+                choice = _simple_text_request(self.title, self.prompt, self.promptCursor, self.options, self.speedMode)
+                if 0 <= choice < len(self.options):
+                    option = self.options[choice]
+                    option.execute()  # If using callback system
+            except (IndexError, ValueError) as e:
+                print(f"Invalid choice: {e}")
+        else:
+            raise NotImplementedError(f"Screen type '{self.type}' is not implemented yet.")
 
 
 class ScreenManager:
