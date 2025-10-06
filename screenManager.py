@@ -197,10 +197,10 @@ class ScreenManager:
         self.speedMode = speed_mode
         self.screens = {}
 
-    def add_screen(self, identifier: str) -> 'Screen':
+    def add_screen(self, identifier: str, screen_type: ScreenTypes) -> 'Screen':
         if identifier in self.screens:
             raise ValueError(f"Screen '{identifier}' already exists")
-        self.screens[identifier] = Screen(identifier=identifier, speed_mode=self.speedMode)
+        self.screens[identifier] = Screen(identifier=identifier, screen_type=screen_type, speed_mode=self.speedMode)
         return self.screens[identifier]
 
     def get_screen_by_identifier(self, identifier):
